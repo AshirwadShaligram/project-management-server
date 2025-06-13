@@ -5,6 +5,9 @@ import mongoose from "mongoose";
 
 // Routes import
 import authRoutes from "./routes/authRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+import issueRoutes from "./routes/issueRoutes.js";
 
 // error middleware import
 import { notFound, errorHandler } from "./middleware/error.js";
@@ -35,6 +38,9 @@ app.use(express.json());
 
 // Mount routes
 app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/issues", issueRoutes);
+app.use("/api/comments", commentRoutes);
 
 // Basic route
 app.get("/", (res) => {
