@@ -54,7 +54,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/attachments", attachmentRoutes);
 
 // Basic route
-app.get("/", (res) => {
+app.get("/", (req, res) => {
   res.send("Welcome to the JIRA CLONE");
 });
 
