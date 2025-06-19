@@ -2,7 +2,7 @@ import cloudinary from "cloudinary";
 import Attachment from "../models/Attachment.js";
 import asyncHandler from "express-async-handler";
 
-// Configure Cloudinary (should be in your app config)
+// Configure Cloudinary
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -49,7 +49,6 @@ export const uploadAttachment = asyncHandler(async (req, res) => {
       folder: "project_attachments",
     });
 
-    // Determine attachment type based on Cloudinary response
     let attachmentType;
     if (result.resource_type === "image") {
       attachmentType = "image";
@@ -102,7 +101,6 @@ export const deleteAttachment = asyncHandler(async (req, res) => {
   }
 
   try {
-    // Delete from Cloudinary first
     await cloudinary.v2.uploader.destroy(attachment.publicId, {
       resource_type: attachment.type === "video" ? "video" : "image",
     });

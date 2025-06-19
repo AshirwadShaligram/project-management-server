@@ -104,7 +104,6 @@ export const getProjectIssues = asyncHandler(async (req, res) => {
     throw new Error("Access denied - Not a project member");
   }
 
-  // Build filter object
   let filter = { projectId };
 
   if (status) filter.status = status;
@@ -399,7 +398,6 @@ export const updateIssueStatus = asyncHandler(async (req, res) => {
 export const getMyAssignedIssues = asyncHandler(async (req, res) => {
   const { status, priority, page = 1, limit = 10 } = req.query;
 
-  // Build filter object
   let filter = { assignee: req.user._id };
 
   if (status) filter.status = status;
@@ -435,7 +433,6 @@ export const getMyAssignedIssues = asyncHandler(async (req, res) => {
 export const getMyReportedIssues = asyncHandler(async (req, res) => {
   const { status, priority, page = 1, limit = 10 } = req.query;
 
-  // Build filter object
   let filter = { reporter: req.user._id };
 
   if (status) filter.status = status;
