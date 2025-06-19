@@ -19,6 +19,9 @@ import {
   getProjectFromIssue,
 } from "../middleware/projectMiddleware.js";
 
+router.get("/assigned-to-me", protect, getMyAssignedIssues);
+router.get("/reported-by-me", protect, getMyReportedIssues);
+
 router.post(
   "/projects/:projectId/issues",
   protect,
@@ -38,8 +41,5 @@ router.delete("/:id", protect, checkIssueDeletePermission, deleteIssue);
 
 router.put("/:id/assign", protect, checkIssuePermission, assignIssue);
 router.put("/:id/status", protect, checkIssuePermission, updateIssueStatus);
-
-router.get("/assigned-to-me", protect, getMyAssignedIssues);
-router.get("/reported-by-me", protect, getMyReportedIssues);
 
 export default router;

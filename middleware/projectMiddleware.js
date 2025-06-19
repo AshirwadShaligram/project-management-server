@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import Issue from "../models/Issue.js";
 import Comment from "../models/Comment.js";
+import Attachment from "../models/Attachment.js";
 import asyncHandler from "express-async-handler";
 
 // @desc    Check if user is project owner
@@ -251,3 +252,80 @@ export const validateProjectOwnership = asyncHandler(async (req, res, next) => {
   req.projects = projects;
   next();
 });
+
+// @desc    Check attachment permissions (owner or project admin)
+export const checkAttachmentPermission = asyncHandler(
+  async (req, res, next) => {
+    const attachment = await Attachment.findById(req.params.id);
+
+    if (!attachment) {
+      res.status(404);
+      throw new Error("Attachment not found");
+    }
+
+    // Check direct ownership
+    const isOwner =
+      attachment.uploadedBy.toString() === req.user._id.toString();
+    if (isOwner) {
+      req.attachment = attachment;
+      return next();
+    }
+
+    // Check if user is admin
+    const isAdmin = req.user.role === "admin";
+    if (isAdmin) {
+      req.attachment = attachment;
+      return next();
+    }
+
+    // For project-related attachments, check project permissions
+    try {
+      if (attachment.issueId) {
+        const issue = await Issue.findById(attachment.issueId).populate(
+          "projectId"
+        );
+        const project = issue.projectId;
+        const isProjectOwner =
+          project.owner.toString() === req.user._id.toString();
+        const isProjectAdmin = project.member.some(
+          (member) =>
+            member.toString() === req.user._id.toString() &&
+            req.user.role === "admin"
+        );
+
+        if (isProjectOwner || isProjectAdmin) {
+          req.attachment = attachment;
+          return next();
+        }
+      }
+
+      if (attachment.commentId) {
+        const comment = await Comment.findById(attachment.commentId).populate({
+          path: "issueId",
+          populate: {
+            path: "projectId",
+          },
+        });
+
+        const project = comment.issueId.projectId;
+        const isProjectOwner =
+          project.owner.toString() === req.user._id.toString();
+        const isProjectAdmin = project.member.some(
+          (member) =>
+            member.toString() === req.user._id.toString() &&
+            req.user.role === "admin"
+        );
+
+        if (isProjectOwner || isProjectAdmin) {
+          req.attachment = attachment;
+          return next();
+        }
+      }
+    } catch (error) {
+      console.error("Error checking project permissions:", error);
+    }
+
+    res.status(403);
+    throw new Error("Not authorized to access this attachment");
+  }
+);

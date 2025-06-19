@@ -8,7 +8,11 @@ const AttachmentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["image", "file"],
+      enum: ["image", "video", "file", "pdf"],
+      required: true,
+    },
+    publicId: {
+      type: String,
       required: true,
     },
     uploadedBy: {
@@ -16,9 +20,34 @@ const AttachmentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    originalFilename: {
+      type: String,
+      required: true,
+    },
+    mimeType: {
+      type: String,
+      required: true,
+    },
+    size: {
+      type: Number,
+      required: true,
+    },
+    issueId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Issue",
+    },
+    commentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+    },
   },
   { timestamps: true }
 );
+
+// Add indexes for better performance
+AttachmentSchema.index({ uploadedBy: 1 });
+AttachmentSchema.index({ issueId: 1 });
+AttachmentSchema.index({ commentId: 1 });
 
 const Attachment = mongoose.model("Attachment", AttachmentSchema);
 export default Attachment;

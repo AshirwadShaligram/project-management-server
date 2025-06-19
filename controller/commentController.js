@@ -50,6 +50,14 @@ export const createComment = asyncHandler(async (req, res) => {
     attachment: attachments || [],
   });
 
+  // Update attachments with commentId reference
+  if (attachments && attachments.length > 0) {
+    await Attachment.updateMany(
+      { _id: { $in: attachments } },
+      { $set: { commentId: comment._id } }
+    );
+  }
+
   // Add comment to issue
   issue.comments.push(comment._id);
   await issue.save();

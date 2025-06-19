@@ -303,7 +303,9 @@ export const deleteIssue = asyncHandler(async (req, res) => {
 // @route   PUT /api/issues/:id/assign
 // @access  Private (Project Members)
 export const assignIssue = asyncHandler(async (req, res) => {
-  const { assigneeId } = req.body;
+  const { assigneeId, assignee } = req.body;
+  const targetAssignee = assigneeId || assignee;
+
   const issue = await Issue.findById(req.params.id).populate("projectId");
 
   if (!issue) {
@@ -323,20 +325,23 @@ export const assignIssue = asyncHandler(async (req, res) => {
     throw new Error("Access denied - Not a project member");
   }
 
-  // Validate assignee is a project member
-  if (assigneeId) {
+  // Validate assignee is a project member if provided
+  if (targetAssignee) {
     const isAssigneeMember = project.member.some(
-      (member) => member.toString() === assigneeId
+      (member) => member.toString() === targetAssignee
     );
+
     if (!isAssigneeMember) {
       res.status(400);
       throw new Error("Assignee must be a project member");
     }
   }
 
-  issue.assignee = assigneeId || null;
+  // Update assignee
+  issue.assignee = targetAssignee || null;
   await issue.save();
 
+  // Return populated assignee data
   const populatedIssue = await Issue.findById(issue._id)
     .populate("reporter", "name email avatar")
     .populate("assignee", "name email avatar")
@@ -350,7 +355,7 @@ export const assignIssue = asyncHandler(async (req, res) => {
 
 // @desc    Update issue status
 // @route   PUT /api/issues/:id/status
-// @access  Private (Project Members)
+// @access  Private (Assignee only)
 export const updateIssueStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
   const issue = await Issue.findById(req.params.id).populate("projectId");
@@ -360,16 +365,13 @@ export const updateIssueStatus = asyncHandler(async (req, res) => {
     throw new Error("Issue not found");
   }
 
-  const project = await Project.findById(issue.projectId._id);
-
-  // Check if user is a member of the project
-  const isMember = project.member.some(
-    (member) => member.toString() === req.user._id.toString()
-  );
-
-  if (!isMember) {
+  // Check if user is the assignee
+  if (
+    !issue.assignee ||
+    issue.assignee.toString() !== req.user._id.toString()
+  ) {
     res.status(403);
-    throw new Error("Access denied - Not a project member");
+    throw new Error("Access denied - Only the assignee can update the status");
   }
 
   if (!["todo", "inprogress", "done"].includes(status)) {

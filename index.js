@@ -2,12 +2,14 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import fileUpload from "express-fileupload";
 
 // Routes import
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import issueRoutes from "./routes/issueRoutes.js";
+import attachmentRoutes from "./routes/attachmentRoutes.js";
 
 // error middleware import
 import { notFound, errorHandler } from "./middleware/error.js";
@@ -34,6 +36,14 @@ app.use(
   })
 );
 
+// Enable file uploads
+app.use(
+  fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+  })
+);
+
 app.use(express.json());
 
 // Mount routes
@@ -41,6 +51,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/attachments", attachmentRoutes);
 
 // Basic route
 app.get("/", (res) => {
