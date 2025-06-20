@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import fileUpload from "express-fileupload";
+import job from "./utils/cron.js";
 
 // Routes import
 import authRoutes from "./routes/authRoutes.js";
@@ -66,4 +67,5 @@ const port = process.env.PORT;
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  job.start();
 });
